@@ -19,10 +19,10 @@ class CanteenTraffic:
             return SubCanteen(int(place["Id"]), place["Name"], place["Seat_u"], place["Seat_s"], parent)
 
         def fetch_sub_canteens(parent: Canteen) -> List[SubCanteen]:
-            sub_places = self.session.get(f"https://canteen.sjtu.edu.cn/CARD/Ajax/PlaceDetails/{parent.id}").json()
+            sub_places = self.session.get(f"https://canteen.sjtu.edu.cn/CARD/Ajax/PlaceDetails/{parent.id}", timeout=5).json()
             return [process_sub_places(parent, place) for place in sub_places]
 
-        places = self.session.get("https://canteen.sjtu.edu.cn/CARD/Ajax/Place").json()
+        places = self.session.get("https://canteen.sjtu.edu.cn/CARD/Ajax/Place", timeout=5).json()
         main_canteens = [process_main_places(place) for place in places]
         sub_canteens = reduce(lambda x, y: (x if x else []) + y, map(fetch_sub_canteens, main_canteens))
         return main_canteens + sub_canteens
@@ -39,7 +39,7 @@ class LibraryTraffic:
         def process_place(place: dict) -> Library:
             return Library(place["areaName"], place["inCounter"], place["max"])
 
-        raw_places = self.session.get("https://libsjtu.seanchao.workers.dev/").text
+        raw_places = self.session.get("http://zgrstj.lib.sjtu.edu.cn/cp", timeout=5).text
         places = json.loads(raw_places.replace("CountPerson(", "").replace(");", ""))["numbers"]
         return [process_place(place) for place in places]
 

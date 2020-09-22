@@ -2,9 +2,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from prometheus_client import Gauge, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from requests.exceptions import Timeout
+import logging
 
 from .models import SubCanteen
 from .traffic import CanteenTraffic, LibraryTraffic
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
@@ -28,7 +32,11 @@ app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
 
 @scheduler.scheduled_job("interval", seconds=30)
 def update_canteen_metrics():
-    canteens = canteen_traffic.get()
+    try:
+        canteens = canteen_traffic.get()
+    except Timeout:
+        logging.error("Timeout when fetching canteen metric.")
+        return
     for canteen in canteens:
         if canteen.name in canteen_fields:
             if isinstance(canteen, SubCanteen):
@@ -45,7 +53,11 @@ def update_canteen_metrics():
 
 @scheduler.scheduled_job("interval", seconds=30)
 def update_library_metrics():
-    libraries = library_traffic.get()
+    try:
+        libraries = library_traffic.get()
+    except Timeout:
+        logging.error("Timeout when fetching canteen metric.")
+        return
     for library in libraries:
         if library.name in library_fields:
             library_occupied_metric.labels(library.name).set(library.occupied)
