@@ -12,12 +12,19 @@ services:
       - "./prometheus-data:/prometheus"
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=3y'
     restart: always
   grafana:
     image: grafana/grafana
     user: "1000:1000"
     volumes:
       - "./grafana-data:/var/lib/grafana"
+      - "./grafana-config.ini:/etc/grafana/grafana.ini"
     ports:
       - "3000:3000"
     restart: always
