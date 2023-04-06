@@ -19,7 +19,8 @@ class CanteenTraffic:
             return SubCanteen(int(place["Id"]), place["Name"], place["Seat_u"], place["Seat_s"], parent)
 
         def fetch_sub_canteens(parent: Canteen) -> List[SubCanteen]:
-            sub_places = self.session.get(f"https://canteen.sjtu.edu.cn/CARD/Ajax/PlaceDetails/{parent.id}", timeout=5).json()
+            sub_places = self.session.get(f"https://canteen.sjtu.edu.cn/CARD/Ajax/PlaceDetails/{parent.id}",
+                                          data={"disabled": 0}, timeout=5).json()
             return [process_sub_places(parent, place) for place in sub_places]
 
         places = self.session.get("https://canteen.sjtu.edu.cn/CARD/Ajax/Place", timeout=5).json()
